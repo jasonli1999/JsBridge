@@ -5,33 +5,28 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
-import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.webkit.WebView;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.github.lzyzsd.library.BuildConfig;
-import com.google.gson.Gson;
+import androidx.collection.ArrayMap;
 
+import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
-import java.net.URLEncoder;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class BridgeWebView extends WebView implements WebViewJavascriptBridge, BridgeWebViewClient.OnLoadJSListener {
 
-	private final int URL_MAX_CHARACTER_NUM=2097152;
+    private final int URL_MAX_CHARACTER_NUM = 2097152;
     private Map<String, OnBridgeCallback> mCallbacks = new ArrayMap<>();
 
     private List<Object> mMessages = new ArrayList<>();
@@ -67,7 +62,8 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge, B
         getSettings().setJavaScriptEnabled(true);
 //        mContent.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && BuildConfig.DEBUG) {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && BuildConfig.DEBUG) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         mClient = new BridgeWebViewClient(this);
@@ -148,7 +144,7 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge, B
      * @param responseCallback OnBridgeCallback
      */
     private void doSend(String handlerName, Object data, OnBridgeCallback responseCallback) {
-        if (!(data instanceof String) && mGson == null){
+        if (!(data instanceof String) && mGson == null) {
             return;
         }
         JSRequest request = new JSRequest();
@@ -185,36 +181,36 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge, B
      * @param message Message
      */
     private void dispatchMessage(Object message) {
-        if (mGson == null){
+        if (mGson == null) {
             return;
         }
         String messageJson = mGson.toJson(message);
         //escape special characters for json string  为json字符串转义特殊字符
 
-		  // 系统原生 API 做 Json转义，没必要自己正则替换，而且替换不一定完整
+        // 系统原生 API 做 Json转义，没必要自己正则替换，而且替换不一定完整
         messageJson = JSONObject.quote(messageJson);
         String javascriptCommand = String.format(BridgeUtil.JS_HANDLE_MESSAGE_FROM_JAVA, messageJson);
         // 必须要找主线程才会将数据传递出去 --- 划重点
         if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT&&javascriptCommand.length()>=URL_MAX_CHARACTER_NUM) {
-				this.evaluateJavascript(javascriptCommand,null);
-			}else {
-				this.loadUrl(javascriptCommand);
-			}
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && javascriptCommand.length() >= URL_MAX_CHARACTER_NUM) {
+                this.evaluateJavascript(javascriptCommand, null);
+            } else {
+                this.loadUrl(javascriptCommand);
+            }
         }
     }
 
     public void sendResponse(Object data, String callbackId) {
-        if (!(data instanceof String) && mGson == null){
+        if (!(data instanceof String) && mGson == null) {
             return;
         }
         if (!TextUtils.isEmpty(callbackId)) {
             final JSResponse response = new JSResponse();
             response.responseId = callbackId;
             response.responseData = data instanceof String ? (String) data : mGson.toJson(data);
-            if (Thread.currentThread() == Looper.getMainLooper().getThread()){
+            if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
                 dispatchMessage(response);
-            }else {
+            } else {
                 post(new Runnable() {
                     @Override
                     public void run() {

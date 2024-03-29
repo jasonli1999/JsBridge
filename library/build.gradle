@@ -3,12 +3,11 @@ apply plugin: 'com.android.library'
 version = "1.0.0"
 
 android {
-    compileSdkVersion 28
-//    buildToolsVersion "25.0.3"
-
+    namespace 'com.github.lzyzsd.jsbridge'
+    compileSdk 34
     defaultConfig {
         minSdkVersion 17
-        targetSdkVersion 28
+        targetSdkVersion 34
         versionCode 1
         versionName version
     }
@@ -25,8 +24,8 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 
@@ -36,14 +35,14 @@ def gitUrl = 'https://github.com/lzyzsd/JsBridge.git'
 group = "com.github.lzyzsd.jsbridge"
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
+//    classifier = 'sources'
 }
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+//    classifier = 'javadoc'
     from javadoc.destinationDir
 }
 artifacts {
